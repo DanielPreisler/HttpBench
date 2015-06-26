@@ -6,33 +6,29 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using HttpBench;
 
 namespace HttpGetTest
 {
     internal class RequestSender
     {
-        private readonly string _url;
-        private readonly int _numberOfRequests;
-        private readonly int _numberOfTasks;
-        private readonly bool _writeResponseToConsole;
+        private readonly RequestData _requestData;
         private readonly int _numberOfRequestsPrTask;
 
-        internal RequestSender(string url, int numberOfRequests, int numberOfTasks, bool writeResponseToConsole = false)
+        internal RequestSender(RequestData requestData)
         {
-            _url = url;
-            _numberOfTasks = numberOfTasks;
-            _numberOfRequests = numberOfRequests;
-            _numberOfRequestsPrTask = _numberOfRequests / _numberOfTasks;
-            _writeResponseToConsole = writeResponseToConsole;
+            _requestData = requestData;
+
+            _numberOfRequestsPrTask = _requestData.NumberOfRequests / _requestData.NumberOfTasks;
         }
 
         public void SendAllRequests()
         {
-            Console.WriteLine("Sending " + _numberOfRequestsPrTask * _numberOfTasks + " requests, using " + _numberOfTasks + " tasks.");
+            Console.WriteLine("Sending " + _numberOfRequestsPrTask * _requestData.NumberOfTasks + " requests, using " + _requestData.NumberOfTasks + " tasks.");
 
             var tasks = new List<Task>();
 
-            for (int i = 0; i < _numberOfTasks; i++)
+            for (int i = 0; i < _requestData.NumberOfTasks; i++)
             {
                 var task = Task.Run(() => { TaskMethod(); });
                 tasks.Add(task);
@@ -69,13 +65,20 @@ namespace HttpGetTest
 
         private void SendRequest()
         {
-            var request = (HttpWebRequest)WebRequest.Create(_url);
-
-            var response = (HttpWebResponse)request.GetResponse();
-
-            if (_writeResponseToConsole)
+            try
             {
-                WriteStreamToConsole(response.GetResponseStream());
+                var request = (HttpWebRequest)WebRequest.Create(_requestData.Url);
+
+                var response = (HttpWebResponse)request.GetResponse();
+
+                if (_requestData.WriteResponseToConsole)
+                {
+                    WriteStreamToConsole(response.GetResponseStream());
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("An error occured: " + e);
             }
         }
 

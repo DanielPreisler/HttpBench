@@ -28,7 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.txtBxUrl = new System.Windows.Forms.TextBox();
             this.lblUrl = new System.Windows.Forms.Label();
             this.txtBxNumberOfRequests = new System.Windows.Forms.TextBox();
             this.lblTotalNumberOfRequests = new System.Windows.Forms.Label();
@@ -37,14 +36,8 @@
             this.chckBxWriteResponseToConsole = new System.Windows.Forms.CheckBox();
             this.btnGo = new System.Windows.Forms.Button();
             this.rchTxtBxOutput = new System.Windows.Forms.RichTextBox();
+            this.cmboBxUrls = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
-            // 
-            // txtBxUrl
-            // 
-            this.txtBxUrl.Location = new System.Drawing.Point(12, 59);
-            this.txtBxUrl.Name = "txtBxUrl";
-            this.txtBxUrl.Size = new System.Drawing.Size(745, 20);
-            this.txtBxUrl.TabIndex = 0;
             // 
             // lblUrl
             // 
@@ -115,11 +108,21 @@
             this.rchTxtBxOutput.TabIndex = 8;
             this.rchTxtBxOutput.Text = "";
             // 
+            // cmboBxUrls
+            // 
+            this.cmboBxUrls.FormattingEnabled = true;
+            this.cmboBxUrls.Location = new System.Drawing.Point(12, 56);
+            this.cmboBxUrls.Name = "cmboBxUrls";
+            this.cmboBxUrls.Size = new System.Drawing.Size(607, 21);
+            this.cmboBxUrls.TabIndex = 9;
+            this.cmboBxUrls.SelectedIndexChanged += new System.EventHandler(this.cmboBxUrls_SelectedIndexChanged);
+            // 
             // HttpBenchForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(996, 731);
+            this.Controls.Add(this.cmboBxUrls);
             this.Controls.Add(this.rchTxtBxOutput);
             this.Controls.Add(this.btnGo);
             this.Controls.Add(this.chckBxWriteResponseToConsole);
@@ -128,7 +131,6 @@
             this.Controls.Add(this.lblTotalNumberOfRequests);
             this.Controls.Add(this.txtBxNumberOfRequests);
             this.Controls.Add(this.lblUrl);
-            this.Controls.Add(this.txtBxUrl);
             this.Name = "HttpBenchForm";
             this.Text = "HTTP Bench";
             this.ResumeLayout(false);
@@ -137,8 +139,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.TextBox txtBxUrl;
         private System.Windows.Forms.Label lblUrl;
         private System.Windows.Forms.TextBox txtBxNumberOfRequests;
         private System.Windows.Forms.Label lblTotalNumberOfRequests;
@@ -147,6 +147,7 @@
         private System.Windows.Forms.CheckBox chckBxWriteResponseToConsole;
         private System.Windows.Forms.Button btnGo;
         private System.Windows.Forms.RichTextBox rchTxtBxOutput;
+        private System.Windows.Forms.ComboBox cmboBxUrls;
     }
 }
 
