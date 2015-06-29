@@ -1,9 +1,8 @@
 ﻿using HttpGetTest;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Text;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace HttpBench
@@ -11,7 +10,7 @@ namespace HttpBench
     public partial class HttpBenchForm : Form
     {
         private readonly List<RequestData> latestUsedRequestData;
-         
+
         public HttpBenchForm()
         {
             InitializeComponent();
@@ -24,29 +23,59 @@ namespace HttpBench
 
         private List<RequestData> GetLatestUsedRequestData()
         {
-            return new List<RequestData>() {new RequestData("http://localhost:8040/?sms=IMEI%3A355457052079650&sno=1263&userid=4660726424", 1,1,true), new RequestData("url2", 2, 2, true) };
+            return new List<RequestData>() { new RequestData("http://testservices200.prod.local:8040/?sms=IMEI%3A355457052079650&sno=1263&userid=4560726424", 1, 1, true),
+                                             new RequestData("http://localhost:8040/?sms=IMEI%3A355457052079650&sno=1263&userid=4560726424", 1, 1, true) };
         }
 
 
         private void btnGo_Click(object sender, EventArgs e)
         {
             rchTxtBxOutput.Text = "";
-            var mem = new MemoryStream(1000);
-            var writer = new StreamWriter(mem);
-            Console.SetOut(writer);
 
             var requestDataFromForm = GetRequestDataFromForm();
 
-            RequestSender requestSender = new RequestSender(requestDataFromForm);
+            int numberOfRequestsPrTask = requestDataFromForm.NumberOfRequests / requestDataFromForm.NumberOfTasks;
 
-            requestSender.SendAllRequests();
+            rchTxtBxOutput.AppendText("Sending " + numberOfRequestsPrTask * requestDataFromForm.NumberOfTasks + " requests, using " + requestDataFromForm.NumberOfTasks + " tasks.");
 
-            FlushToOutput(writer, mem);
+            var requestSender = new RequestSender(requestDataFromForm);
 
-            rchTxtBxOutput.AppendText("************ Done ************");
+            var requestTasks = requestSender.CreateRequestTasks();
+
+            foreach (var requestTask in requestTasks)
+            {
+                requestTask.Start();
+            }
+
+            var output = "Waiting for all tasks to complete.\n";
+
+            Task.WaitAll(requestTasks.ToArray());
+
+            output +=("All tasks are completed.\n");
+
+            var resultData = requestTasks.Select(someTask => someTask.Result).ToList();
+            string responses = "";
+
+            foreach (var data in resultData)
+            {
+                output += data + "\n";
+                responses += data.GetResultText();
+            }
+
+            if (chckBxWriteResponseToConsole.Checked)
+            {
+                output += "************ responses: ************\n";
+
+                output += responses;
+            }
+
+            output += "************ Done ************\n";
+            
+            rchTxtBxOutput.AppendText(output);
 
             UpdateListOfRecentlyUsedRequests();
         }
+
 
         private RequestData GetRequestDataFromForm()
         {
@@ -59,6 +88,7 @@ namespace HttpBench
 
             return requestData;
         }
+
 
         private void UpdateListOfRecentlyUsedRequests()
         {
@@ -78,15 +108,6 @@ namespace HttpBench
                 cmboBxUrls.SelectedIndex = 0;
             }
         }
-
-
-        private void FlushToOutput(StreamWriter writer, MemoryStream memoryStream )
-        {
-            writer.Flush();
-            string outputText = Encoding.Default.GetString(memoryStream.ToArray());
-            rchTxtBxOutput.AppendText(outputText);
-        }
-
 
         private void cmboBxUrls_SelectedIndexChanged(object sender, EventArgs e)
         {

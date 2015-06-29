@@ -1,12 +1,11 @@
-﻿using System;
+﻿using HttpBench;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
-using HttpBench;
 
 namespace HttpGetTest
 {
@@ -18,38 +17,35 @@ namespace HttpGetTest
         internal RequestSender(RequestData requestData)
         {
             _requestData = requestData;
-
+            
             _numberOfRequestsPrTask = _requestData.NumberOfRequests / _requestData.NumberOfTasks;
         }
 
-        public void SendAllRequests()
+        public List<Task<ResultData>> CreateRequestTasks()
         {
-            Console.WriteLine("Sending " + _numberOfRequestsPrTask * _requestData.NumberOfTasks + " requests, using " + _requestData.NumberOfTasks + " tasks.");
-
-            var tasks = new List<Task>();
+            var tasks = new List<Task<ResultData>>();
 
             for (int i = 0; i < _requestData.NumberOfTasks; i++)
             {
-                var task = Task.Run(() => { TaskMethod(); });
+                var task = new Task<ResultData>(TaskMethod);
                 tasks.Add(task);
             }
-
-            Console.WriteLine("Waiting for all tasks to complete.");
-            Task.WaitAll(tasks.ToArray());
-            Console.WriteLine("All tasks are completed.");
+            
+            return tasks;
         }
 
-        private void TaskMethod()
+        private ResultData TaskMethod()
         {
             var totalTimeStopwatch = Stopwatch.StartNew();
 
             TimeSpan largestTimeToCompleteRequest = TimeSpan.Zero;
             TimeSpan smallestTimeToCompleteRequest = TimeSpan.MaxValue;
+            List<string> resultTextLines = new List<string>();
 
             for (int j = 0; j < _numberOfRequestsPrTask; j++)
             {
                 var requestStopwatch = Stopwatch.StartNew();
-                SendRequest();
+                resultTextLines.Add(SendRequest());
                 requestStopwatch.Stop();
 
                 if (requestStopwatch.Elapsed < smallestTimeToCompleteRequest)
@@ -60,11 +56,14 @@ namespace HttpGetTest
             }
 
             totalTimeStopwatch.Stop();
-            WriteResultsToConsole(totalTimeStopwatch, smallestTimeToCompleteRequest, largestTimeToCompleteRequest);
+
+            return new ResultData(totalTimeStopwatch, smallestTimeToCompleteRequest, largestTimeToCompleteRequest, _numberOfRequestsPrTask, resultTextLines);
         }
 
-        private void SendRequest()
+        private string SendRequest()
         {
+            string resultText = "";
+
             try
             {
                 var request = (HttpWebRequest)WebRequest.Create(_requestData.Url);
@@ -73,31 +72,29 @@ namespace HttpGetTest
 
                 if (_requestData.WriteResponseToConsole)
                 {
-                    WriteStreamToConsole(response.GetResponseStream());
+                     resultText = GetTextFromStream(response.GetResponseStream());
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine("An error occured: " + e);
+                resultText = "An error occured: " + e;
             }
+
+            return resultText;
         }
 
-        private void WriteStreamToConsole(Stream stream)
+        private string GetTextFromStream(Stream stream)
         {
+            string text = "";
+
             if (stream != null)
             {
                 var reader = new StreamReader(stream);
 
-                Console.WriteLine(reader.ReadToEnd());
+                text = reader.ReadToEnd();
             }
-        }
 
-        private void WriteResultsToConsole(Stopwatch stopwatch, TimeSpan smallestTimeToCompleteRequest, TimeSpan largestTimeToCompleteRequest)
-        {
-            Console.WriteLine("Task " + Task.CurrentId + " done.\t" +
-                              " Total: " + stopwatch.Elapsed +
-                              ". Min: " + smallestTimeToCompleteRequest + ", Max: " + largestTimeToCompleteRequest +
-                              ", Avg: " + stopwatch.Elapsed.TotalMilliseconds / _numberOfRequestsPrTask + " milliseconds.");
+            return text;
         }
     }
 }
