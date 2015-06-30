@@ -38,7 +38,6 @@ namespace HttpBench
 
             foreach (var _resultTextLine in _resultTextLines)
                 stringBuilder.AppendLine(_resultTextLine);
-            
 
             return stringBuilder.ToString();
         }
