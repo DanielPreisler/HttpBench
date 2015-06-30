@@ -5,9 +5,17 @@ namespace HttpBench
     public class RequestData
     {
         private readonly string _url;
+        public string Url => _url;
+
         private readonly int _numberOfRequests;
+        internal int NumberOfRequests => _numberOfRequests;
+
         private readonly int _numberOfTasks;
+        internal int NumberOfTasks => _numberOfTasks;
+
         private readonly bool _writeResponseToConsole;
+        internal bool WriteResponseToConsole => _writeResponseToConsole;
+
 
         internal RequestData(string url, int numberOfRequests, int numberOfTasks, bool writeResponseToConsole)
         {
@@ -16,32 +24,14 @@ namespace HttpBench
             _numberOfTasks = numberOfTasks;
             _writeResponseToConsole = writeResponseToConsole;
         }
-
-        public string Url => _url;
-
-        internal int NumberOfRequests => _numberOfRequests;
-
-        internal int NumberOfTasks => _numberOfTasks;
-
-        internal bool WriteResponseToConsole => _writeResponseToConsole;
+        
 
         public override bool Equals(object objToBeCompared)
         {
-            if (objToBeCompared == null)
+            if (!(objToBeCompared is RequestData))
                 return false;
-            if (objToBeCompared is RequestData)
-            {
-                var objRequestData = (RequestData) objToBeCompared;
 
-                return (objRequestData.Url                      == _url &&
-                        objRequestData.NumberOfRequests         == _numberOfRequests &&
-                        objRequestData.NumberOfTasks            == _numberOfTasks &&
-                        objRequestData.WriteResponseToConsole   == _writeResponseToConsole);
-            }
-            else
-            {
-                return false;
-            }
+            return ((RequestData)objToBeCompared).Url == _url;
         }
     }
 }

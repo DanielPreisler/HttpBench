@@ -38,9 +38,7 @@ namespace HttpBench
 
             rchTxtBxOutput.AppendText("Sending " + numberOfRequestsPrTask * requestDataFromForm.NumberOfTasks + " requests, using " + requestDataFromForm.NumberOfTasks + " tasks.");
 
-            var requestSender = new RequestSender(requestDataFromForm);
-
-            var requestTasks = requestSender.CreateRequestTasks();
+            var requestTasks = new RequestSender(requestDataFromForm).CreateRequestTasks();
 
             foreach (var requestTask in requestTasks)
             {
@@ -92,7 +90,7 @@ namespace HttpBench
 
         private void UpdateListOfRecentlyUsedRequests()
         {
-            RequestData requestDataFromForm = GetRequestDataFromForm();
+            var requestDataFromForm = GetRequestDataFromForm();
 
             if (!latestUsedRequestData.Contains(requestDataFromForm) && !string.IsNullOrEmpty(requestDataFromForm.Url))
             {

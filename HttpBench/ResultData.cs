@@ -34,14 +34,13 @@ namespace HttpBench
 
         public string GetResultText()
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
+
             foreach (var _resultTextLine in _resultTextLines)
-            {
                 stringBuilder.AppendLine(_resultTextLine);
-            }
+            
 
             return stringBuilder.ToString();
         }
-
     }
 }

@@ -14,33 +14,31 @@ namespace HttpGetTest
         private readonly RequestData _requestData;
         private readonly int _numberOfRequestsPrTask;
 
+
         internal RequestSender(RequestData requestData)
         {
             _requestData = requestData;
-            
             _numberOfRequestsPrTask = _requestData.NumberOfRequests / _requestData.NumberOfTasks;
         }
+
 
         public List<Task<ResultData>> CreateRequestTasks()
         {
             var tasks = new List<Task<ResultData>>();
 
-            for (int i = 0; i < _requestData.NumberOfTasks; i++)
-            {
-                var task = new Task<ResultData>(TaskMethod);
-                tasks.Add(task);
-            }
+            for (int i = 0; i < _requestData.NumberOfTasks; i++) tasks.Add(new Task<ResultData>(TaskMethod));
             
             return tasks;
         }
 
+
         private ResultData TaskMethod()
         {
-            var totalTimeStopwatch = Stopwatch.StartNew();
+            var totalTime = Stopwatch.StartNew();
 
-            TimeSpan largestTimeToCompleteRequest = TimeSpan.Zero;
-            TimeSpan smallestTimeToCompleteRequest = TimeSpan.MaxValue;
-            List<string> resultTextLines = new List<string>();
+            var largestTimeToCompleteRequest = TimeSpan.Zero;
+            var smallestTimeToCompleteRequest = TimeSpan.MaxValue;
+            var resultTextLines = new List<string>();
 
             for (int j = 0; j < _numberOfRequestsPrTask; j++)
             {
@@ -55,10 +53,11 @@ namespace HttpGetTest
                     largestTimeToCompleteRequest = requestStopwatch.Elapsed;
             }
 
-            totalTimeStopwatch.Stop();
+            totalTime.Stop();
 
-            return new ResultData(totalTimeStopwatch, smallestTimeToCompleteRequest, largestTimeToCompleteRequest, _numberOfRequestsPrTask, resultTextLines);
+            return new ResultData(totalTime, smallestTimeToCompleteRequest, largestTimeToCompleteRequest, _numberOfRequestsPrTask, resultTextLines);
         }
+
 
         private string SendRequest()
         {
@@ -68,11 +67,12 @@ namespace HttpGetTest
             {
                 var request = (HttpWebRequest)WebRequest.Create(_requestData.Url);
 
-                var response = (HttpWebResponse)request.GetResponse();
-
-                if (_requestData.WriteResponseToConsole)
+                using (var response = (HttpWebResponse) request.GetResponse())
                 {
-                     resultText = GetTextFromStream(response.GetResponseStream());
+                    if (_requestData.WriteResponseToConsole)
+                    {
+                        resultText = GetTextFromStream(response.GetResponseStream());
+                    }
                 }
             }
             catch (Exception e)
@@ -83,18 +83,12 @@ namespace HttpGetTest
             return resultText;
         }
 
+
         private string GetTextFromStream(Stream stream)
         {
-            string text = "";
+            if (stream == null) return "";
 
-            if (stream != null)
-            {
-                var reader = new StreamReader(stream);
-
-                text = reader.ReadToEnd();
-            }
-
-            return text;
+            return new StreamReader(stream).ReadToEnd();
         }
     }
 }
